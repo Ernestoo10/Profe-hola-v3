@@ -28,35 +28,53 @@ namespace INICIO_SESIÓN_e
 
         private void bttIngresar_Click(object sender, EventArgs e)
         {
-            string usuario, contraseña;
-            usuario = txtUsuario.Text;
-            contraseña = txtContraseña.Text;
-            string connectionstring = "server = DESKTOP-9N0UA3G\\SQLEXPRESS;Database = LOGINDBS; integrated Security = true;";
-            using (SqlConnection conn = new SqlConnection(connectionstring))
+            string usuario = txtUsuario.Text.Trim();
+            string contraseña = txtContraseña.Text.Trim();
+
+            if (string.IsNullOrEmpty(usuario) || string.IsNullOrEmpty(contraseña))
             {
-                conn.Open();
+                MessageBox.Show("Debe ingresar usuario y contraseña.", "Datos incompletos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-                String query = "SELECT NombreRol FROM Usuarios U JOIN Roles R ON U.IDR = R.IDR WHERE U.Usuario = @usuario AND U.Contraseña = @contrasena";
+            string connectionString = @"server=DESKTOP-9N0UA3G\SQLEXPRESS;Database=LOGINDBS;Integrated Security=true;";
 
-                SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@usuario", usuario);
-                cmd.Parameters.AddWithValue("@contrasena", contraseña);
-
-                var rol = cmd.ExecuteScalar();
-
-                if (rol != null)
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    String rolUsuario = rol.ToString();
+                    conn.Open();
 
-                    FRMenu menu = new FRMenu(usuario, rolUsuario);
-                    menu.Show();
+                    string query = @"SELECT NombreRol FROM Usuarios U JOIN Roles R ON U.IDR = R.IDR WHERE U.Usuario = @usuario AND U.Contraseña = @contrasena";
 
-                    this.Hide();
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@usuario", usuario);
+                        cmd.Parameters.AddWithValue("@contrasena", contraseña);
+
+                        var rol = cmd.ExecuteScalar();
+
+                        if (rol != null)
+                        {
+                            string rolUsuario = rol.ToString();
+
+                            FRMenu menu = new FRMenu(usuario, rolUsuario);
+                            menu.Show();
+                            this.Hide();
+                        }
+                        else
+                        {
+                            MessageBox.Show("Usuario/Contraseña incorrecto.", "Error de autenticación", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                            txtUsuario.Clear();
+                            txtContraseña.Clear();
+                        }
+                    }
                 }
-                else
-                {
-                    MessageBox.Show("Usuario o Contraseña Incorrecto", "Erorr de Datos");
-                }
+            }
+            catch (SqlException ex)
+            {
+                MessageBox.Show("Error al conectar con la base de datos:\n" + ex.Message, "Error de conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

@@ -34,6 +34,8 @@ namespace INICIO_SESIÓN_e
 
         private void button1_Click(object sender, EventArgs e)
         {
+            MessageBox.Show("Se ha Cerrado la Sesión con Éxito","Cerrando Sesión..", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
             FRInicio inicio = new FRInicio();
             inicio.Show();
             this.Hide();
